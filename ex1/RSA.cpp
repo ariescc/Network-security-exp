@@ -1,176 +1,75 @@
 #include <iostream>
-#include <cmath>
-#include <cstring>
-#include <ctime>
-#include <cstdlib>
+
 using namespace std;
 
+long long gcd(long long a, long long b)
+{
+    return b ? gcd(b, a % b) : a;
+}
 
-int Plaintext[100];//√˜Œƒ
-long long Ciphertext[100];//√‹Œƒ
-int n, e = 0, d;
+long long LeastCommonMultiple (int a, int b, int c)
 
-//∂˛Ω¯÷∆◊™ªª
-int BianaryTransform(int num, int bin_num[])
 {
 
-    int i = 0,  mod = 0;
+    int t = a * b /c;
 
-    //◊™ªªŒ™∂˛Ω¯÷∆£¨ƒÊœÚ‘›¥Êtemp[] ˝◊È÷–
-    while(num != 0)
-    {
-        mod = num%2;
-        bin_num[i] = mod;
-        num = num/2;
-        i++;
+    return t;
+
+}
+
+long long Mode(long long a, long long b, long long mode)
+{
+    long long sum = 1;
+    a = a % mode;
+
+    while (b > 0) {
+        if (b % 2 == 1)     //Âà§Êñ≠ÊòØÂê¶ÊòØÂ•áÊï∞ÔºåÊòØÂ•áÊï∞ÁöÑËØùÂ∞ÜÂ§öÂá∫Êù•ÁöÑÊï∞‰∫ãÂÖà‰πòÂ¶Çsum
+            sum = (sum * a) % mode;
+
+        b /= 2;
+        a = (a * a) % mode;// ‰∏çÊñ≠ÁöÑ‰∏§‰∏§ÂêàÂπ∂ÂÜçÂèñÊ®°ÔºåÂáèÂ∞èaÂíåbÁöÑËßÑÊ®°
     }
-
-    //∑µªÿ∂˛Ω¯÷∆ ˝µƒŒª ˝
-    return i;
-}
-
-//∑¥∏¥∆Ω∑Ω«Û√›
-long long Modular_Exonentiation(long long a, int b, int n)
-{
-    int c = 0, bin_num[1000];
-    long long d = 1;
-    int k = BianaryTransform(b, bin_num)-1;
-
-    for(int i = k; i >= 0; i--)
-    {
-        c = 2*c;
-        d = (d*d)%n;
-        if(bin_num[i] == 1)
-        {
-            c = c + 1;
-            d = (d*a)%n;
-        }
-    }
-    return d;
-}
-
-//…˙≥…1000“‘ƒ⁄Àÿ ˝
-int ProducePrimeNumber(int prime[])
-{
-    int c = 0, vis[1001];
-    memset(vis, 0, sizeof(vis));
-    for(int i = 2; i <= 1000; i++)if(!vis[i])
-    {
-        prime[c++] = i;
-        for(int j = i*i; j <= 1000; j+=i)
-            vis[j] = 1;
-    }
-
-    return c;
-}
-
-
-//≈∑º∏¿Ôµ√¿©’πÀ„∑®
-int Exgcd(int m,int n,int &x)
-{
-    int x1,y1,x0,y0, y;
-    x0=1; y0=0;
-    x1=0; y1=1;
-    x=0; y=1;
-    int r=m%n;
-    int q=(m-r)/n;
-    while(r)
-    {
-        x=x0-q*x1; y=y0-q*y1;
-        x0=x1; y0=y1;
-        x1=x; y1=y;
-        m=n; n=r; r=m%n;
-        q=(m-r)/n;
-    }
-    return n;
-}
-
-//RSA≥ı ºªØ
-void RSA_Initialize()
-{
-    //»°≥ˆ1000ƒ⁄Àÿ ˝±£¥Ê‘⁄prime[] ˝◊È÷–
-    int prime[5000];
-    int count_Prime = ProducePrimeNumber(prime);
-
-    //ÀÊª˙»°¡Ω∏ˆÀÿ ˝p,q
-    srand((unsigned)time(NULL));
-    int ranNum1 = rand()%count_Prime;
-    int ranNum2 = rand()%count_Prime;
-    int p = prime[ranNum1], q = prime[ranNum2];
-
-    n = p*q;
-
-    int On = (p-1)*(q-1);
-
-
-    //”√≈∑º∏¿Ôµ¬¿©’πÀ„∑®«Ûe,d
-    for(int j = 3; j < On; j+=1331)
-    {
-        int gcd = Exgcd(j, On, d);
-        if( gcd == 1 && d > 0)
-        {
-            e = j;
-            break;
-        }
-
-    }
-
-}
-
-//RSAº”√‹
-void RSA_Encrypt()
-{
-    cout<<"Public Key (e, n) : e = "<<e<<" n = "<<n<<'\n';
-    cout<<"Private Key (d, n) : d = "<<d<<" n = "<<n<<'\n'<<'\n';
-
-    int i = 0;
-    for(i = 0; i < 100; i++)
-        Ciphertext[i] = Modular_Exonentiation(Plaintext[i], e, n);
-
-    cout<<"Use the public key (e, n) to encrypt:"<<'\n';
-    for(i = 0; i < 100; i++)
-        cout<<Ciphertext[i]<<" ";
-    cout<<'\n'<<'\n';
-}
-
-//RSAΩ‚√‹
-void RSA_Decrypt()
-{
-    int i = 0;
-    for(i = 0; i < 100; i++)
-        Ciphertext[i] = Modular_Exonentiation(Ciphertext[i], d, n);
-
-    cout<<"Use private key (d, n) to decrypt:"<<'\n';
-    for(i = 0; i < 100; i++)
-        cout<<Ciphertext[i]<<" ";
-    cout<<'\n'<<'\n';
-}
-
-
-//À„∑®≥ı ºªØ
-void Initialize()
-{
-    int i;
-    srand((unsigned)time(NULL));
-    for(i = 0; i < 100; i++)
-        Plaintext[i] = rand()%1000;
-
-    cout<<"Generate 100 random numbers:"<<'\n';
-    for(i = 0; i < 100; i++)
-        cout<<Plaintext[i]<<" ";
-    cout<<'\n'<<'\n';
+    return sum;
 }
 
 int main()
 {
-    Initialize();
+    long long p, q, N, L, E, D;
+    cin >> p >> q;
 
-    while(!e)
-        RSA_Initialize();
+    // ËæìÂÖ•ÊòéÊñá
+    long long plaintxt;
+    cin >> plaintxt;
 
-    RSA_Encrypt();
+    N = p * q;
+    cout << "N: " << N << endl;
+    // Ê±ÇÊúÄÂ§ßÂÖ¨Âõ†Êï∞
+    long long c = gcd(p-1, q-1);
+    cout << "c: " << c << endl;
+    L = LeastCommonMultiple(p-1, q-1, c);
+    cout << "L: " << L << endl;
 
-    RSA_Decrypt();
+    // E
+    for(long long i = L-1; i >= 2; i--) {
+        if(gcd(i, L) == 1) E = i;
+    }
+    cout << "E: " << E << endl;
+
+    // D
+    for(long long i = 2; i < L; i++) {
+        if((E * i) % L == 1) D = i;
+    }
+    cout << "D: " << D << endl;
+
+    // Âä†ÂØÜ
+    // Âø´ÈÄüÂπÇ
+    long long mitxt = Mode(plaintxt, E, N);
+    cout << mitxt << endl;
+
+    // Ëß£ÂØÜ
+    long long jiemi = Mode(mitxt, D, N);
+    cout << jiemi << endl;
 
     return 0;
 }
+
