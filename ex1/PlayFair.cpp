@@ -26,8 +26,6 @@ void grid(char mmp[5][5], char c, int &x, int &y)
 
 int main()
 {
-
-
     #ifdef LOCAL
     freopen("email.txt", "r", stdin);
     //freopen("ciphertext.txt", "w", stdout);
@@ -38,8 +36,6 @@ int main()
 
     string key;
     cin >> key;
-
-
 
     // init matrix
     int k = 0;
