@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string>
 #include <string.h>
+#include <deque>
+#include <cmath>
 
 using namespace std;
 
@@ -14,6 +16,7 @@ int x, y;
 // get cooderation from mp
 void grid(char mmp[5][5], char c, int &x, int &y)
 {
+    if(c == 'J') c = 'I';
     int flag = 0;
     for(int i = 0; i < 5; i++) {
         for(int j = 0; j < 5; j++) {
@@ -26,16 +29,30 @@ void grid(char mmp[5][5], char c, int &x, int &y)
 
 int main()
 {
-    #ifdef LOCAL
-    freopen("email.txt", "r", stdin);
-    //freopen("ciphertext.txt", "w", stdout);
-    #endif // LOCAL
+    deque<char> que;
 
     string plaintext;
-    cin >> plaintext;
+    getline(cin, plaintext);
 
     string key;
     cin >> key;
+
+    // 处理字符串
+    for(int i = 0; i < plaintext.length(); i++) {
+        if(plaintext[i] == ' ') continue;
+        if(!i) que.push_back(plaintext[i]);
+        else {
+            char ch = que.back();
+            if(plaintext[i] == ch) que.push_back('X');
+            que.push_back(plaintext[i]);
+        }
+    }
+
+
+    /*while(!que.empty()) {
+        cout << que.front();
+        que.pop_front();
+    }*/
 
     // init matrix
     int k = 0;
@@ -51,7 +68,8 @@ int main()
         mp[k][r] = key[i];
     }
 
-    cout << k << " " << r << endl;
+
+    //cout << k << " " << r << endl;
     r++;
     for(int i = 0; i < 26; i++) {
         if(i == 9) continue;
@@ -66,41 +84,56 @@ int main()
     }
 
     // print mp
-    for(int i = 0; i < 5; i++) {
+    /*for(int i = 0; i < 5; i++) {
         for(int j = 0; j < 5; j++) {
             cout << mp[i][j] << " ";
         }
         cout << endl;
+    }*/
+
+
+    deque<char> result; // 存储加密结果
+
+    // 字符串长度为奇数，结尾添加X
+    if(que.size() & 1) {
+        que.push_back('X');
     }
 
-
-    string res = plaintext;
-
-    if(plaintext.length() % 2) plaintext += "X";
-    for(int i = 0; i < plaintext.length(); i+=2) {
-        grid(mp, plaintext[i], x, y);
+    while(!que.empty()) {
+        char ch1 = que.front(); que.pop_front();
+        char ch2 = que.front(); que.pop_front();
+        // calulate cooderative
+        grid(mp, ch1, x, y);
         int first_x = x, first_y = y;
-        grid(mp, plaintext[i+1], x, y);
+        grid(mp, ch2, x, y);
         int second_x = x, second_y = y;
 
         // same row
         if(first_x == second_x) {
-            res[i] = mp[first_x][(first_y+1)%5];
-            res[i+1] = mp[second_x][(second_y+1)%5];
+            result.push_back(mp[first_x][(first_y+1)%5]);
+            result.push_back(mp[second_x][(second_y+1)%5]);
         } // same col
         else if(first_y == second_y) {
-            res[i] = mp[(first_x+1)%5][first_y];
-            res[i+1] = mp[(second_x+1)%5][second_y];
+            result.push_back(mp[(first_x+1)%5][first_y]);
+            result.push_back(mp[(second_x+1)%5][second_y]);
         } // others
         else {
-            res[i] = mp[first_x][second_y];
-            res[i+1] = mp[second_x][first_y];
+            if(abs(second_x-first_x) < abs(second_y-first_y)) {
+                result.push_back(mp[second_x][first_y]);
+                result.push_back(mp[first_x][second_y]);
+            }
+            else {
+                result.push_back(mp[first_x][second_y]);
+                result.push_back(mp[second_x][first_y]);
+            }
         }
     }
 
+
     // print result
-    for(int i = 0; i < res.length(); i++) {
-        cout << res[i];
+    while(!result.empty()) {
+        cout << result.front();
+        result.pop_front();
     }
 
     return 0;

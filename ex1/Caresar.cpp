@@ -20,8 +20,8 @@ int main()
     // read the plaintext from the user
 
     #ifdef LOCAL
-    freopen("email.txt", "r", stdin);
-    freopen("ciphertext.txt", "w", stdout);
+    freopen("in.txt", "r", stdin);
+    freopen("out.txt", "w", stdout);
     #endif // LOCAL
 
     string text;

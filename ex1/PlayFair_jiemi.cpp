@@ -1,162 +1,124 @@
 #include <iostream>
+#include <deque>
+#include <algorithm>
 #include <stdio.h>
 #include <string>
 #include <string.h>
-#include<vector>
-
+#include <cmath>
 
 using namespace std;
 
+char mp[5][5]; // matrix
+int _exist[26];
+
+int x, y;
+
+// get cooderation from mp
+void grid(char mmp[5][5], char c, int &x, int &y)
+{
+    int flag = 0;
+    for(int i = 0; i < 5; i++) {
+        for(int j = 0; j < 5; j++) {
+            if(mmp[i][j] == c) {x = i; y = j; flag = 1; break;}
+        }
+        if(flag) break;
+    }
+}
+
 int main()
 {
+    deque<char> que;
+
+    string plaintext;
+    getline(cin, plaintext);
 
     string key;
     cin >> key;
 
-    string plaintext;
-    cin.get();
-    getline(cin,plaintext);
-
-
-    char a[5][5];
-    string upper_list = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    int flag, cnt;
-    vector<char> str;
-
-    for(int i = 0; i < key.length(); i++){
-        flag = 0;
-        for(int j = 0; j < str.size(); j++){
-            if(key[i] == str[j]){
-                flag = 1;
-                continue;
-            }
-        }
-        if(flag == 0){
-            if(key[i] == 'J'){
-                int cnt = 0;
-                for(int t = 0; t < str.size(); t++){
-                    if(str[t] == 'I'){
-                        cnt = 1;
-                        continue;
-                    }
-                }
-                if(cnt == 0) str.push_back('I');
-            }
-            else str.push_back(key[i]);
+    // 处理字符串
+    for(int i = 0; i < plaintext.length(); i++) {
+        if(plaintext[i] == ' ') continue;
+        if(!i) que.push_back(plaintext[i]);
+        else {
+            char ch = que.back();
+            if(plaintext[i] == ch) que.push_back('X');
+            que.push_back(plaintext[i]);
         }
     }
 
-    while(str.size() < 25){
-        for(int i = 0; i < upper_list.length(); i++){
-            int flag = 0;
-            for(int j = 0; j < str.size(); j++){
-                if(upper_list[i] == str[j]){
-                    flag = 1;
-                    continue;
-                }
-            }
-            if(flag == 0) {
-                if(upper_list[i] == 'J'){
-                    cnt = 0;
-                    for(int t = 0; t < str.size(); t++){
-                        if(str[t] == 'I'){
-                            cnt = 1;
-                            continue;
-                        }
-                    }
-                    if(cnt == 0) str.push_back('I');
-                }
-                else str.push_back(upper_list[i]);
-            }
+    /*while(!que.empty()) {
+        cout << que.front();
+        que.pop_front();
+    }*/
 
+    // init matrix
+    int k = 0;
+    int r = 0;
+    for(int i = 0; i < key.length(); i++) {
+        _exist[key[i]-'A'] = 1;
+        if(key[i] == 'I' || key[i] == 'J') {_exist[8] = 1; _exist[9] = 1;}
+
+        if(i > 4 && i % 5 == 0) {
+            k++;
+        }
+        r = i % 5;
+        mp[k][r] = key[i];
+    }
+
+    //cout << k << " " << r << endl;
+    r++;
+    for(int i = 0; i < 26; i++) {
+        if(i == 9) continue;
+        if(!_exist[i]) {
+            if(r % 5 == 0) {
+                k++;
+                r = 0;
+            }
+            mp[k][r] = 'A' + i;
+            r++;
         }
     }
 
-    for(int i = 0; i < 5; i++){
-        for(int j = 0; j < 5; j++){
-            a[i][j] = str[5*i + j];
-            cout<<a[i][j]<<" ";
+    deque<char> result; // 存储解密结果
+
+    while(!que.empty()) {
+        char ch1 = que.front(); que.pop_front();
+        char ch2 = que.front(); que.pop_front();
+        // calutate cooderative
+        grid(mp, ch1, x, y);
+        int first_x = x, first_y = y;
+        grid(mp, ch2, x, y);
+        int second_x = x, second_y = y;
+
+        // same row
+        if(first_x == second_x) {
+            result.push_back(mp[first_x][(first_y+4)%5]);
+            result.push_back(mp[second_x][(second_y+4)%5]);
+        } // same col
+        else if(first_y == second_y) {
+            result.push_back(mp[(first_x+4)%5][first_y]);
+            result.push_back(mp[(second_x+4)%5][second_y]);
+        } // others
+        else {
+            if(abs(second_x-first_x) < abs(second_y-first_y)) {
+                result.push_back(mp[second_x][first_y]);
+                result.push_back(mp[first_x][second_y]);
+            }
+            else {
+                result.push_back(mp[first_x][second_y]);
+                result.push_back(mp[second_x][first_y]);
+            }
         }
-        cout<<endl;
     }
 
-    vector<string> last;
-    string res = "";
-    for(int i = 0; i < plaintext.size(); i++){
-        if(plaintext[i] == 'J') plaintext[i] == 'I';
+    // 将X处理掉
+    for(int i = 0; i < result.size(); i++) {
+        if(result.at(i) != 'X') cout << result.at(i);
+        else {
+            // 判断前后是否相同
+            if(result.at(i-1) != result.at(i+1)) cout << 'X';
+        }
     }
-
-    for(int i = 0; i < plaintext.size(); i++){
-       if(plaintext[i] != ' '){
-          res += plaintext[i];
-       }
-       else{
-        if(res.size()%2 == 0){
-            last.push_back(res);
-            res = "";
-        }
-        else{
-            string res1 = "";
-            for(int j = 0; j < res.size()-1; j++){
-                res1 += res[j];
-            }
-            res1 = res1 + res[res.size() - 1] + 'X';
-            last.push_back(res1);
-            res = "";
-        }
-       }
-       if(i == plaintext.size()-1){
-        if(res.size()%2 == 0){
-            last.push_back(res);
-            res = "";
-        }
-        else{
-            string res1 = "";
-            for(int j = 0; j < res.size()-1; j++){
-                res1 += res[j];
-            }
-            res1 = res1 +'X' + res[res.size() - 1];
-            last.push_back(res1);
-            res = "";
-        }
-       }
-   }
-
-   int m1,n1,m2,n2;
-   for(int i = 0; i < last.size(); i++){
-    for(int j = 0; j < last[i].length()/2; j++){
-        for(int m = 0; m <5; m++){
-            for(int n = 0; n < 5; n++){
-                if(a[m][n] == last[i][j*2]){
-                    m1 = m;
-                    n1 = n;
-                }
-                if(a[m][n] == last[i][j*2 + 1]){
-                    m2 = m;
-                    n2 = n;
-                }
-
-            }
-        }
-        if(m1 == m2 && n1 != n2){
-            cout<<a[m1][(n1+1)%5 ]<<a[m2][(n2+1)%5]<<" ";
-        }
-        if(n1 == n2&& m1 != m2){
-            cout<<a[(m1+1)%5][n1]<<a[(m2+1)%5][n2]<<" ";
-        }
-        if(n1 != n2 && m1!= m2){
-            if(m1 < m2){
-                cout<<a[m1][n2]<<a[m2][n1]<<" ";
-            }
-            else cout<<a[m2][n1]<<a[m1][n2]<<" ";
-        }
-
-    }
-   }
-   cout<<endl;
-
+    cout << endl;
     return 0;
-
-
-
 }
