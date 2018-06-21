@@ -20,10 +20,24 @@ def hand_user_con(usr):
             if msg[0]=='login':
                 print ('user [%s] login' % msg[1])
                 usr.username=msg[1]
+                usr.publickey=msg[2]
                 notice_other_usr(usr)
-            if msg[0]=='talk':
+            if msg[0]=='talk': # talk|user|des_key|msg
                 print ('user[%s]to[%s]:%s' % (usr.username,msg[1],msg[2]))
-                send_msg(msg[1],msg[2])#发送消息给目标用户，参数1：目标用户，参数2：消息内容
+                #send_msg(msg[1],msg[2])#发送消息给目标用户，参数1：目标用户，参数2：消息内容
+                # 查找目标用户的pub_key
+                pub=''
+                for ur in userlist:
+                    print(ur.publickey,'bingo')
+                    if ur.username == usr.username:
+                        pub=ur.publickey
+                        break
+                # 将源发送用户的pub_key发送给目标用户
+                pub='pub|'+pub
+                for ur in userlist:
+                    if ur.username == msg[1]:
+                        pub=pub+'$'+msg[2]+'$'+msg[3]
+                        send_msg(ur.username,pub)
             if msg[0]=='exit':
                 print ('user [%s] exit' % msg[0])
                 isNormar=False
