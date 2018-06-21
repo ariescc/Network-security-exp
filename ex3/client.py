@@ -4,11 +4,13 @@ client
 import sys
 import socket
 import threading,time
+import des as ds
+import des_1 as des_jm
 
 #global variable
 isNormar=True
 other_usr=''
-
+object_pub_key='' # 目标聊天对象的公钥
 
 
 def gcd(a,b):
@@ -46,7 +48,7 @@ def generate_keypair():
     return [n,e,d]
 
 def publickey_pair():
-    print('123123123123')
+    #print('123123123123')
     tmp=generate_keypair()
     return (tmp[0],tmp[1])
 
@@ -58,14 +60,14 @@ def privatekey_pair():
 def rsa_eneryption(val):
     params=generate_keypair()
     #n e d
-    mitxt=Mode(val,params[1],params[0])
+    mitxt=Mode(val,params[2],params[0])
     return str(mitxt)
 
-# rsa_jiemi(val):
-def rsa_jiemi(val):
-    params=generate_keypair()
+# 客户端RSA解密
+def rsa_jiemi(val,pub):
+    params=pub.split('#')
     #n e d
-    plaintxt=Mode(int(val),params[2],params[0])
+    plaintxt=Mode(int(val),int(params[1]),int(params[0]))
     return chr(plaintxt)
 
 # 明文加密
@@ -77,19 +79,21 @@ def get_mitxt(content):
     return res
 
 # RSA解密
-def get_plaintxt(content):
+def get_plaintxt(content,pub):
     plaintxt=''
     mitxts=content.split(' ')
     print(len(mitxts))
     for mit in mitxts:
         print(mit)
-        plaintxt=plaintxt+rsa_jiemi(mit)
+        plaintxt=plaintxt+rsa_jiemi(mit,pub)
     return plaintxt
 
 
 def recieve_msg(username,pubkey,prakey,s):
     global isNormar,other_usr
     print ('Please waiting other user login...')
+    print(pubkey,'pubkey')
+    print(prakey,'prakey')
     s.send(('login|%s|%s|%s' %(username,pubkey,prakey)).encode())
     while(isNormar):
         data= s.recv(1024).decode()#阻塞线程，接受消息
@@ -97,14 +101,29 @@ def recieve_msg(username,pubkey,prakey,s):
         if msg[0]=='login':
             print ('%s user has already logged in, start to chat' % msg[1])
             other_usr=msg[1]
+        elif msg[0] == 'pub':
+            print('objective user public key is %s' % msg[1])
+            tmp=msg[1].split('$')
+            # RSA公钥，用于DES_KEY解密
+            pubs=tmp[0]
+            # DES_KEY
+            des_key=tmp[1]
+            # content
+            content=tmp[2]
+            # RSA解密DES_KEY
+            des_key_plain=get_plaintxt(des_key,pubs)
+            # 信息明文
+            plain=des_jm.desdecode(content,des_key_plain)
+            print(plain)
         else:
-            plaintxt=get_plaintxt(msg[0])
-            print (plaintxt)
+            messages=msg[0].split('$')
+            plaintxt=get_plaintxt(messages[1],messages[0])
+            print(plaintxt)
             #print(msg[0])
 
 #程序入口'login|%s' %username
 def main():
-    global isNormar,other_usr
+    global isNormar,other_usr,object_pub_key
     try:
         print ('Please input your name:')
         usrname=input()
@@ -113,6 +132,7 @@ def main():
         tp=privatekey_pair()
         prakey=str(tp[0])+'#'+str(tp[1])
         #print(pubkey[0],pubkey[1])
+        print(pubkey,prakey)
         s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         s.connect(("127.0.0.1",9999))
         t=threading.Thread(target=recieve_msg,args=(usrname,pubkey,prakey,s))
@@ -128,10 +148,13 @@ def main():
             isNormar=False
         else:
             if(other_usr!=''):
-                msg=get_mitxt(msg)
+                # 输入DES密钥
+                des_key=input('请输入DES密钥: ')
+                msg=ds.desencode(msg,des_key)
+                des_key=get_mitxt(des_key)
                 # 将信息发送给谁
                 other_usr=input('Who do you want to send the message?Input his name: ')
-                s.send(("talk|%s|%s" % (other_usr,msg)).encode())#编码消息并发送
+                s.send(("talk|%s|%s|%s" % (other_usr,des_key,msg)).encode()) #编码消息并发送
     #s.close()
 
 if __name__=="__main__":
