@@ -7,15 +7,19 @@ import re
 
 __all__=['desencode']
 class DES():
+	'''DES加密'''
 	def __init__(self):
 		pass
+	# 加密
 	def code(self,from_code,key,code_len,key_len):
 		output=""
 		trun_len=0
 
+		# 将密文和密钥转换为二进制
 		code_string=self._functionCharToA(from_code,code_len)
 		code_key=self._functionCharToA(key,key_len)
 
+		# 如果密钥长度不是16的整数倍则以增加0的方式变为16的倍数
 		if code_len%16!=0:
 			real_len=(code_len//16)*16+16
 		else:
@@ -25,24 +29,27 @@ class DES():
 			key_len=(key_len//16)*16+16
 		key_len*=4
 
+		# 每个16进制占4位
 		trun_len=4*real_len
+		# 对每64位进行一次加密
 		for i in range(0,trun_len,64):
 			run_code=code_string[i:i+64]
 			l=i%key_len
 			run_key=code_key[l:l+64]
 
+			# 64位明文、密钥初始置换
 			run_code= self._codefirstchange(run_code)
 			run_key= self._keyfirstchange(run_key)
 
 			for j in range(16):
-
+				# 取出明文左右32位
 				code_r=run_code[32:64]
 				code_l=run_code[0:32]
-
+				# 64左右置换
 				run_code=code_r
 
 				code_r= self._functionE(code_r)
-
+				# 获取本轮子密钥
 				key_l=run_key[0:28]
 				key_r=run_key[28:56]
 				key_l=key_l[d[j]:28]+key_l[0:d[j]]
@@ -53,19 +60,20 @@ class DES():
 				code_r= self._codeyihuo(code_r,key_y)
 
 				code_r= self._functionS(code_r)
-
+				# P转换
 				code_r= self._functionP(code_r)
 
 				code_r= self._codeyihuo(code_l,code_r)
 				run_code+=code_r
-
+			# 32互换
 			code_r=run_code[32:64]
 			code_l=run_code[0:32]
 			run_code=code_r+code_l
-
+			# 将二进制转换为16进制、逆初始置换
 			output+=self._functionCodeChange(run_code)
 		return output
 
+	# 异或
 	def _codeyihuo(self,code,key):
 		code_len=len(key)
 		return_list=''
@@ -76,18 +84,21 @@ class DES():
 				return_list+='1'
 		return return_list
 
+	# 密文或明文初始置换
 	def _codefirstchange(self,code):
 		changed_code=''
 		for i in range(64):
 			changed_code+=code[ip[i]-1]
 		return changed_code
 
+	# 密钥初始置换
 	def _keyfirstchange (self,key):
 		changed_key=''
 		for i in range(56):
 			changed_key+=key[pc1[i]-1]
 		return changed_key
 
+	# 逆初始置换
 	def _functionCodeChange(self, code):
 		lens=len(code)//4
 		return_list=''
@@ -98,18 +109,21 @@ class DES():
 			return_list+="%x" %int(list,2)
 		return return_list
 
+	# 扩展置换
 	def _functionE(self,code):
 		return_list=''
 		for i in range(48):
 			return_list+=code[e[i]-1]
 		return return_list
 
+	# 置换P
 	def _functionP(self,code):
 		return_list=''
 		for i in range(32):
 			return_list+=code[p[i]-1]
 		return return_list
 
+	# S盒代替选择置换
 	def _functionS(self, key):
 		return_list=''
 		for i in range(8):
@@ -119,12 +133,14 @@ class DES():
 
 		return return_list
 
+	# 密钥置换选择2
 	def _functionKeySecondChange(self,key):
 		return_list=''
 		for i in range(48):
 			return_list+=key[pc2[i]-1]
 		return return_list
 
+	# 将16进制转换为2进制字符串
 	def _functionCharToA(self,code,lens):
 		return_code=''
 		lens=lens%16
@@ -135,6 +151,7 @@ class DES():
 			return_code+='0'*(16-lens)*4
 		return return_code
 
+	# 二进制转换
 	def _functionTos(self,o,lens):
 		return_code=''
 		for i in range(lens):
