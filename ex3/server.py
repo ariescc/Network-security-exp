@@ -28,7 +28,7 @@ def hand_user_con(usr):
                 # 查找目标用户的pub_key
                 pub=''
                 for ur in userlist:
-                    print(ur.publickey,'bingo')
+                    #print(ur.publickey,'bingo')
                     if ur.username == usr.username:
                         pub=ur.publickey
                         break

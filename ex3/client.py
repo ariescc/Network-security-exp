@@ -82,9 +82,9 @@ def get_mitxt(content):
 def get_plaintxt(content,pub):
     plaintxt=''
     mitxts=content.split(' ')
-    print(len(mitxts))
+    #print(len(mitxts))
     for mit in mitxts:
-        print(mit)
+        #print(mit)
         plaintxt=plaintxt+rsa_jiemi(mit,pub)
     return plaintxt
 
@@ -92,8 +92,8 @@ def get_plaintxt(content,pub):
 def recieve_msg(username,pubkey,prakey,s):
     global isNormar,other_usr
     print ('Please waiting other user login...')
-    print(pubkey,'pubkey')
-    print(prakey,'prakey')
+    #print(pubkey,'pubkey')
+    #print(prakey,'prakey')
     s.send(('login|%s|%s|%s' %(username,pubkey,prakey)).encode())
     while(isNormar):
         data= s.recv(1024).decode()#阻塞线程，接受消息
@@ -132,7 +132,7 @@ def main():
         tp=privatekey_pair()
         prakey=str(tp[0])+'#'+str(tp[1])
         #print(pubkey[0],pubkey[1])
-        print(pubkey,prakey)
+        #print(pubkey,prakey)
         s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         s.connect(("127.0.0.1",9999))
         t=threading.Thread(target=recieve_msg,args=(usrname,pubkey,prakey,s))
