@@ -6,6 +6,7 @@ import socket
 import threading,time
 import des as ds
 import des_1 as des_jm
+import md5
 
 #global variable
 isNormar=True
@@ -110,6 +111,14 @@ def recieve_msg(username,pubkey,prakey,s):
             des_key=tmp[1]
             # content
             content=tmp[2]
+            # S
+            md5_S=tmp[3]
+            md5_S_plain=get_plaintxt(md5_S,pubs)
+            md5_D=md5._md5(content.encode())
+            if md5_S_plain==md5_D:
+                print('数字签名成功！')
+            else:
+                print('数字签名失败！')
             # RSA解密DES_KEY
             des_key_plain=get_plaintxt(des_key,pubs)
             # 信息明文
@@ -150,11 +159,13 @@ def main():
             if(other_usr!=''):
                 # 输入DES密钥
                 des_key=input('请输入DES密钥: ')
-                msg=ds.desencode(msg,des_key)
-                des_key=get_mitxt(des_key)
+                msg=ds.desencode(msg,des_key) # M
+                D=md5._md5(msg.encode())
+                S=get_mitxt(D)
+                des_key=get_mitxt(des_key) # S
                 # 将信息发送给谁
                 other_usr=input('Who do you want to send the message?Input his name: ')
-                s.send(("talk|%s|%s|%s" % (other_usr,des_key,msg)).encode()) #编码消息并发送
+                s.send(("talk|%s|%s|%s|%s" % (other_usr,des_key,msg,S)).encode()) #编码消息并发送
     #s.close()
 
 if __name__=="__main__":

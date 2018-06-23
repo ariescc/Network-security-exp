@@ -36,7 +36,7 @@ def hand_user_con(usr):
                 pub='pub|'+pub
                 for ur in userlist:
                     if ur.username == msg[1]:
-                        pub=pub+'$'+msg[2]+'$'+msg[3]
+                        pub=pub+'$'+msg[2]+'$'+msg[3]+'$'+msg[4]
                         send_msg(ur.username,pub)
             if msg[0]=='exit':
                 print ('user [%s] exit' % msg[0])
